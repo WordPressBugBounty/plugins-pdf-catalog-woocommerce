@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PDF Catalog Woocommerce
  * Description: Woocommerce Catalog PDF use for download product details in pdf
- * Version:     2.0
+ * Version:     3.0
  * Author:      Gravity Master
  * License:     GPLv2 or later
  * Text Domain: gmwcp

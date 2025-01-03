@@ -1,5 +1,5 @@
 === PDF Catalog Woocommerce ===
-Tested up to: 6.6.2
+Tested up to: 6.7.1
 Tags: Woocommerce Catalog PDF, Woocommerce PDF, Woocommerce  Catalog
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html

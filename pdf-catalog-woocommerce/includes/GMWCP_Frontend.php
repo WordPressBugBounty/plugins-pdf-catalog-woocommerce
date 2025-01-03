@@ -87,7 +87,10 @@ class GMWCP_Frontend {
 			//$url_custom = add_query_arg( 'site_url', get_site_url(), $url_custom );
 			?>
 			<div class="gmwcp_button">
-					<a href="<?php echo $url_custom;?>" class="button"><?php echo $gmpcp_arr['gmpcp_trasnlation_single']; ?></a>
+				<a href="<?php echo esc_url($url_custom); ?>" class="button">
+				    <?php echo esc_html($gmpcp_arr['gmpcp_trasnlation_single']); ?>
+				</a>
+
 			</div>
 			<?php
 		}
@@ -127,8 +130,11 @@ class GMWCP_Frontend {
 		if($isshow==true){
 		?>
 		<div class="gmwcp_button">
-			<a href="<?php echo $updated_url;?>" class="button"><?php echo $label; ?></a>
+		    <a href="<?php echo esc_url($updated_url); ?>" class="button">
+		        <?php echo esc_html($label); ?>
+		    </a>
 		</div>
+
 		<?php
 		}
 		$output = ob_get_contents();

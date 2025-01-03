@@ -21,6 +21,61 @@ class GMWCP_API {
             'permission_callback' => '__return_true',
         ));
     }
+    public function convert_image_to_base64($image_path) {
+    $file_extension = strtolower(pathinfo($image_path, PATHINFO_EXTENSION));
+
+    // Check if the file is a WebP image
+    if ($file_extension === 'webp') {
+        // Attempt to use GD library
+        if (function_exists('imagecreatefromwebp') && function_exists('imagepng')) {
+            // Create an image resource from the WebP file
+            $webp_image = @imagecreatefromwebp($image_path);
+            if ($webp_image) {
+                // Start output buffering
+                ob_start();
+                // Output the image as PNG
+                imagepng($webp_image);
+                // Get the image data from the buffer
+                $png_data = ob_get_clean();
+
+                // Free memory
+                imagedestroy($webp_image);
+
+                // Convert the PNG data to a base64 string
+                return 'data:image/png;base64,' . base64_encode($png_data);
+            }
+        }
+
+        // Attempt to use Imagick
+        if (class_exists('Imagick')) {
+            try {
+                $imagick = new Imagick();
+                $imagick->readImage($image_path); // Read the WebP image
+                $imagick->setImageFormat('png'); // Convert to PNG
+
+                // Get the PNG data as a string
+                $png_data = $imagick->getImageBlob();
+
+                // Destroy the Imagick object
+                $imagick->clear();
+                $imagick->destroy();
+
+                // Convert the PNG data to a base64 string
+                return 'data:image/png;base64,' . base64_encode($png_data);
+            } catch (Exception $e) {
+                error_log('Imagick conversion failed: ' . $e->getMessage());
+            }
+        }
+
+        // If neither GD nor Imagick could process the WebP file, log an error
+        error_log('Neither GD nor Imagick could process the WebP file.');
+        return null;
+    }
+
+    // Return the original path for non-WebP images
+    return $image_path;
+}
+
 
     public function get_endpoint_args() {
         return array(
@@ -134,10 +189,11 @@ class GMWCP_API {
         $products = array();
         $args['meta_query'] = array(
             array(
-                'key' => '_gmwcp_exclude_product_single',
+                'key'     => '_gmwcp_exclude_product_single',
                 'compare' => 'NOT EXISTS',
             ),
         );
+       
         if ($gmwcp_exclude_out_of_stock == 'yes') {
             $args['meta_query'][] = array(
                 'key'     => '_stock_status',
@@ -145,6 +201,7 @@ class GMWCP_API {
                 'compare' => '='
             );
         }
+
         $query = new WP_Query($args);
         $this->total_products = $query->found_posts;
         if ($query->have_posts()) {
@@ -166,7 +223,7 @@ class GMWCP_API {
         $gallery_images = array();
         foreach ($gallery_image_ids as $image_id) {
             $gallery_images[] = array(
-                'src' => wp_get_attachment_url($image_id),
+                'src' => $this->convert_image_to_base64(wp_get_attachment_url($image_id)),
                 'alt' => get_post_meta($image_id, '_wp_attachment_image_alt', true),
             );
         }
@@ -185,6 +242,15 @@ class GMWCP_API {
             'p' => array(),
             'div' => array(),
         );
+        $thumbnail_url = get_the_post_thumbnail_url($product_id, 'thumbnail');
+        if (!$thumbnail_url) {
+            $thumbnail_url = wc_placeholder_img_src('full');
+        }
+        $full_url = get_the_post_thumbnail_url($product_id, 'full');
+        if (!$full_url) {
+            $full_url = wc_placeholder_img_src('full');
+        }
+        $images_full= 
         $formatted_product = array(
             'id' => $product->get_id(),
             'name' => $product->get_name(),
@@ -199,8 +265,8 @@ class GMWCP_API {
             'categories' => wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'names')),
             'tags' => wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'names')),
             'images' => array(
-                'thumbnail' => get_the_post_thumbnail_url($product->get_id(), 'thumbnail'),
-                'full' => get_the_post_thumbnail_url($product->get_id(), 'full'),
+                'thumbnail' => $this->convert_image_to_base64($thumbnail_url),
+                'full' => $this->convert_image_to_base64($full_url),
             ),
             'gallery_images' => $gallery_images,
             'producat_cat' => $product_cat,
