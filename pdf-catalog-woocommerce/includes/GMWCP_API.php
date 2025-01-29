@@ -242,11 +242,11 @@ class GMWCP_API {
             'p' => array(),
             'div' => array(),
         );
-        $thumbnail_url = get_the_post_thumbnail_url($product_id, 'thumbnail');
+        $thumbnail_url = get_the_post_thumbnail_url($product->get_id(), 'thumbnail');
         if (!$thumbnail_url) {
             $thumbnail_url = wc_placeholder_img_src('full');
         }
-        $full_url = get_the_post_thumbnail_url($product_id, 'full');
+        $full_url = get_the_post_thumbnail_url($product->get_id(), 'full');
         if (!$full_url) {
             $full_url = wc_placeholder_img_src('full');
         }
