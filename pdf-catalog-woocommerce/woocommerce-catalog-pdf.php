@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! defined( 'GMWCP_PREFIX' ) ) {
 	define( 'GMWCP_PREFIX', 'gmwcp' );
 }
+
 if ( ! defined( 'GMWCP_PLUGINDIR' ) ) {
 	define( 'GMWCP_PLUGINDIR', plugin_dir_path( __FILE__ ) );
 }
@@ -47,4 +48,5 @@ new GMWCP_Admin();
 new GMWCP_Frontend();
 new GMWCP_PDF();
 new GMWCP_API();
+new GMWCP_API_Frontend();
 ?>

@@ -9,12 +9,15 @@ class GMWCP_Frontend {
 	public function __construct () {
 		
 		add_action( 'init', array( $this, 'GMWCP_init' )); 
+		
 	}
+	
 	function GMWCP_init(){
 		global $gmpcp_arr;
-		$gmwcp_enable_single_product = $gmpcp_arr['gmwcp_enable_single_product'];
+		$gmwcp_single_enable_product = $gmpcp_arr['gmwcp_single_enable_product'];
 		$gmwcp_single_display_location = $gmpcp_arr['gmwcp_single_display_location'];
-		if($gmwcp_enable_single_product == 'yes'){
+		if($gmwcp_single_enable_product == 'yes'){
+
 			if($gmwcp_single_display_location == 'before'){
 				add_action( 'woocommerce_product_meta_start', array( $this, 'woo_comman_single_button' ), 10, 0 ); 
 			}
@@ -73,24 +76,31 @@ class GMWCP_Frontend {
 		if (metadata_exists( 'post', $product_id, '_gmwcp_exclude_product_single' ) ) {
 			$isshow = false;
 		}
-		if ( is_user_logged_in() ) {
-			$current_user = wp_get_current_user();
-			$user_roles = $current_user->roles;
-			$common_elements = array_intersect($user_roles, $gmpcp_arr['gmpcp_exclude_role']);
-			if (!empty($common_elements)) {
-				$isshow = false;
+		if($isshow == true){
+			if ( is_user_logged_in()) {
+				$current_user = wp_get_current_user();
+				$user_roles = $current_user->roles;
+				$common_elements = array_intersect($user_roles, $gmpcp_arr['gmpcp_exclude_role']);
+				if (empty($common_elements) && !empty($gmpcp_arr['gmpcp_exclude_role'])) {
+					$isshow = false;
+				}
+			}else{
+
+				if (!empty($gmpcp_arr['gmpcp_exclude_role'])) {
+					$isshow = false;
+				}
 			}
 		}
+		
 		if ($isshow==true) {
 			$url_custom = add_query_arg( 'action', 'catelog_single', $url_custom );
 			$url_custom = add_query_arg( 'product_id', $product_id, $url_custom );
 			//$url_custom = add_query_arg( 'site_url', get_site_url(), $url_custom );
 			?>
 			<div class="gmwcp_button">
-				<a href="<?php echo esc_url($url_custom); ?>" class="button">
+					<a href="<?php echo esc_url($url_custom); ?>" class="button">
 				    <?php echo esc_html($gmpcp_arr['gmpcp_trasnlation_single']); ?>
 				</a>
-
 			</div>
 			<?php
 		}
@@ -101,14 +111,23 @@ class GMWCP_Frontend {
 	function get_cat_button($attr=array()){
 
 		global $wp,$wp_query,$gmpcp_arr;
-		
 		ob_start();
 		$current_url = $this->getcurrneturl();
 		$updated_url = add_query_arg( 'action', 'catelog_shop', $current_url );
 		//$updated_url = add_query_arg( 'site_url', get_site_url(), $updated_url );
-		if(isset($wp_query->query_vars['taxonomy']) && $wp_query->query_vars['taxonomy']!=''){
-			$updated_url = add_query_arg( 'taxonomy', $wp_query->query_vars['taxonomy'], $updated_url );
-			$updated_url = add_query_arg( 'taxonomy_value', $wp_query->query_vars['term'], $updated_url );
+		if (isset($attr) && isset($attr['category_id']) && $attr['category_id'] != '') {
+			$term = get_term( $attr['category_id'], 'product_cat' );
+
+			if ( ! is_wp_error( $term ) && $term ) { // Ensure $term is valid
+			    $updated_url = add_query_arg( 'taxonomy', $term->taxonomy, $updated_url );
+			    $updated_url = add_query_arg( 'taxonomy_value', $term->slug, $updated_url );
+			}
+
+		}else{
+			if(isset($wp_query->query_vars['taxonomy']) && $wp_query->query_vars['taxonomy']!=''){
+				$updated_url = add_query_arg( 'taxonomy', $wp_query->query_vars['taxonomy'], $updated_url );
+				$updated_url = add_query_arg( 'taxonomy_value', $wp_query->query_vars['term'], $updated_url );
+			}
 		}
 		$label = $gmpcp_arr['gmpcp_trasnlation_category'];
 
@@ -119,22 +138,27 @@ class GMWCP_Frontend {
 				$isshow = false;
 			}
 		}
-		if ( is_user_logged_in() ) {
-			$current_user = wp_get_current_user();
-			$user_roles = $current_user->roles;
-			$common_elements = array_intersect($user_roles, $gmpcp_arr['gmpcp_exclude_role']);
-			if (!empty($common_elements)) {
-				$isshow = false;
+		if($isshow == true){
+			if ( is_user_logged_in() ) {
+				$current_user = wp_get_current_user();
+				$user_roles = $current_user->roles;
+				$common_elements = array_intersect($user_roles, $gmpcp_arr['gmpcp_exclude_role']);
+				if (empty($common_elements) && !empty($gmpcp_arr['gmpcp_exclude_role'])) {
+					$isshow = false;
+				}
+			}else{
+				if (!empty($gmpcp_arr['gmpcp_exclude_role'])) {
+					$isshow = false;
+				}
 			}
 		}
 		if($isshow==true){
 		?>
 		<div class="gmwcp_button">
-		    <a href="<?php echo esc_url($updated_url); ?>" class="button">
+			<a href="<?php echo esc_url($updated_url); ?>" class="button">
 		        <?php echo esc_html($label); ?>
 		    </a>
 		</div>
-
 		<?php
 		}
 		$output = ob_get_contents();

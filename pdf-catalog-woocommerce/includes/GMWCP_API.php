@@ -1,296 +1,305 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit;
 class GMWCP_API {
-    public $total_products;
-
+    
     public function __construct() {
-        add_action('rest_api_init', array($this, 'register_routes'));
+        // Register the REST API route on plugin activation
+        add_action('rest_api_init', array($this, 'GMWCP_rest_api_init'));
     }
 
-    public function register_routes() {
-        register_rest_route('gmwcp-pdf/v1', '/products', array(
-            'methods' => 'GET',
-            'callback' => array($this, 'gmwcp_get_woocommerce_products'),
-            'args' => $this->get_endpoint_args(),
-            'permission_callback' => '__return_true',
+    public function GMWCP_rest_api_init() {
+        // Register a custom route for saving settings
+        register_rest_route('gmwcp/v1', '/save-settings', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'GMWCP_save_multiple_settings'),
+            'permission_callback' => array($this, 'GMWCP_permission_callback'),
         ));
-        register_rest_route('gmwcp-pdf/v1', '/setting', array(
+
+        register_rest_route('gmwcp/v1', '/save-customfield', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'GMWCP_save_custom_field'),
+            'permission_callback' => array($this, 'GMWCP_permission_callback'),
+        ));
+        register_rest_route('gmwcp/v1', '/delete-customfield', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'GMWCP_delete_custom_field'),
+            'permission_callback' => array($this, 'GMWCP_permission_callback'),
+        ));
+
+        // Register a custom route for fetching settings (GET)
+        register_rest_route('gmwcp/v1', '/get-settings', array(
             'methods' => 'GET',
-            'callback' => array($this, 'gmwcp_get_setting'),
-            'args' => array(),
-            'permission_callback' => '__return_true',
+            'callback' => array($this, 'GMWCP_get_settings'),
+            'permission_callback' => array($this, 'GMWCP_permission_callback'),
+        ));
+
+        register_rest_route('gmwcp/v1', '/moreplugin', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'GMWCP_moreplugin'),
+            'permission_callback' => array($this, 'GMWCP_permission_callback'),
         ));
     }
-    public function convert_image_to_base64($image_path) {
-    $file_extension = strtolower(pathinfo($image_path, PATHINFO_EXTENSION));
 
-    // Check if the file is a WebP image
-    if ($file_extension === 'webp') {
-        // Attempt to use GD library
-        if (function_exists('imagecreatefromwebp') && function_exists('imagepng')) {
-            // Create an image resource from the WebP file
-            $webp_image = @imagecreatefromwebp($image_path);
-            if ($webp_image) {
-                // Start output buffering
-                ob_start();
-                // Output the image as PNG
-                imagepng($webp_image);
-                // Get the image data from the buffer
-                $png_data = ob_get_clean();
+    // Save multiple settings
+    public function GMWCP_save_multiple_settings($request) {
+         // Get nonce from request headers
+        $nonce = $request->get_header('X-WP-Nonce');
 
-                // Free memory
-                imagedestroy($webp_image);
+        // Verify nonce
+        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return new WP_REST_Response(array(
+            'success' => false,
+            'message' => 'Invalid nonce',
+        ), 403); // Invalid nonce error
+        }
+        // Retrieve the settings array from the request body
+        $settings = $request->get_param('settings');
 
-                // Convert the PNG data to a base64 string
-                return 'data:image/png;base64,' . base64_encode($png_data);
-            }
+        if (!is_array($settings)) {
+            return new WP_Error('invalid_settings', 'Settings must be an array', array('status' => 400));
         }
 
-        // Attempt to use Imagick
-        if (class_exists('Imagick')) {
-            try {
-                $imagick = new Imagick();
-                $imagick->readImage($image_path); // Read the WebP image
-                $imagick->setImageFormat('png'); // Convert to PNG
+        $response = array();
 
-                // Get the PNG data as a string
-                $png_data = $imagick->getImageBlob();
-
-                // Destroy the Imagick object
-                $imagick->clear();
-                $imagick->destroy();
-
-                // Convert the PNG data to a base64 string
-                return 'data:image/png;base64,' . base64_encode($png_data);
-            } catch (Exception $e) {
-                error_log('Imagick conversion failed: ' . $e->getMessage());
+        // Loop through each setting and save it
+        foreach ($settings as $option_name => $option_value) {
+            // Sanitize the option name
+            $option_name = sanitize_key($option_name);
+           /* echo "<pre>";
+            print_r($option_value);
+            echo "</pre>";*/
+            // Sanitize the option value based on your use case. Example:
+            if (is_array($option_value)) {
+                $option_value = array_map('sanitize_text_field', $option_value); // Sanitize array values
+            } else {
+                $option_value = sanitize_text_field($option_value); // Sanitize single value
             }
+
+            // Save the option
+            $result = update_option($option_name, $option_value);
+
+            // Add the result to the response
+            $response[$option_name] = $result ? 'saved' : 'failed';
         }
 
-        // If neither GD nor Imagick could process the WebP file, log an error
-        error_log('Neither GD nor Imagick could process the WebP file.');
-        return null;
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => 'Settings processed',
+            'results' => $response,
+        ));
     }
 
-    // Return the original path for non-WebP images
-    return $image_path;
-}
+    // Save multiple settings
+    public function GMWCP_save_custom_field($request) {
+         // Get nonce from request headers
+        $nonce = $request->get_header('X-WP-Nonce');
 
+        // Verify nonce
+        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Invalid nonce',
+            ), 403); // Invalid nonce error
+        }
+        $settings = $request->get_param('settings');
+        // Sanitize and retrieve the data from the AJAX request
+        $field_id = isset($settings['id']) && $settings['id'] != 'null' ? sanitize_text_field($settings['id']) : '';
+        $field_name = sanitize_text_field($settings['title']);
+        $field_gmwcpkey = sanitize_text_field($settings['gmwcpkey']);
 
-    public function get_endpoint_args() {
-        return array(
-            'page' => array(
-                'validate_callback' => function($param, $request, $key) {
-                    return is_numeric($param) && $param >= 1;
-                },
-                'sanitize_callback' => 'absint',
-                'default' => 1,
-            ),
-            'per_page' => array(
-                'validate_callback' => function($param, $request, $key) {
-                    return is_numeric($param) && $param >= 1;
-                },
-                'sanitize_callback' => 'absint',
-                'default' => 10,
-            ),
-            'taxonomy' => array(
-                'sanitize_callback' => 'sanitize_text_field',
-            ),
-            'taxonomy_value' => array(
-                'sanitize_callback' => 'sanitize_text_field',
-            ),
-            'product_id' => array(
-                'validate_callback' => function($param, $request, $key) {
-                    return is_numeric($param) && $param > 0;
-                },
-                'sanitize_callback' => 'absint',
-            ),
+        // Validate the required fields
+        if (empty($field_name)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Field name is required.',
+            ), 403);
+        }
+        if (empty($field_gmwcpkey) ) {
+             return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Field key is required.',
+            ), 403);
+        }
+
+        // Prepare post data for insertion or update
+        $post_data = array(
+            'post_title'  => $field_name,
+            'post_type'   => 'gmwcp_custom_field', // Your custom post type
+            'post_status' => 'publish', // Set post status
         );
-    }
 
-    public function gmwcp_get_setting($data) {
-        global $gmpcp_translation, $gmpcp_arr;
-        $arr = array();
-        $setting = array();
-        $setting['gmwcp_show_hide'] = $gmpcp_arr['gmwcp_show_hide'];
-        $setting['gmpcp_pagebreak'] = $gmpcp_arr['gmpcp_pagebreak'];
-        $setting['gmpcp_image_width'] = $gmpcp_arr['gmpcp_image_width'];
-        $setting['gmpcp_header_text'] = $gmpcp_arr['gmpcp_header_text'];
-        $setting['gmpcp_hf_background_color'] = $gmpcp_arr['gmpcp_hf_background_color'];
-        $setting['gmpcp_hf_item_background_color'] = $gmpcp_arr['gmpcp_hf_item_background_color'];
-        $setting['gmpcp_footer_text'] = $gmpcp_arr['gmpcp_footer_text'];
-        $setting['gmpcp_background_color'] = $gmpcp_arr['gmpcp_background_color'];
-        $setting['gmpcp_item_background_color'] = $gmpcp_arr['gmpcp_item_background_color'];
+        if (!empty($field_id)) {
+            // Update existing field
+            $post_data['ID'] = $field_id; // Set the ID for updating
+            $post_id = wp_update_post($post_data); // Update the post
 
-        $arr['translation'] = $gmpcp_translation;
-        $arr['setting'] = $setting;
-
-        return rest_ensure_response($arr);
-    }
-
-    public function gmwcp_get_woocommerce_products($data) {
-        global $gmpcp_arr;
-        $gmwcp_exclude_out_of_stock = $gmpcp_arr['gmwcp_exclude_out_of_stock'];
-        $products = array();
-
-        if (isset($data['product_id']) && !empty($data['product_id'])) {
-            $product_id = absint($data['product_id']);
-            $product = $this->gmwcp_get_product_by_id($product_id);
-
-            if (!$product) {
-                return new WP_Error('invalid_product_id', __('Invalid product ID.'), array('status' => 404));
+            if (is_wp_error($post_id)) {
+                wp_send_json_error('Error updating post: ' . $post_id->get_error_message()); // Handle update errors
             }
-
-            $formatted_product = $this->gmwcp_format_product_data($product);
-            $products[] = $formatted_product;
-            $response = rest_ensure_response($products);
-            $response->header('X-WP-TotalPages', 1);
         } else {
-            $args = array(
-                'post_type' => 'product',
-                'posts_per_page' => $data['per_page'],
-                'paged' => $data['page'],
-            );
-
-            if (!empty($data['taxonomy'])) {
-                $args['tax_query'][] = array(
-                    'taxonomy' => $data['taxonomy'],
-                    'field' => 'slug',
-                    'terms' => $data['taxonomy_value'],
-                );
+            // Insert new field
+            $post_id = wp_insert_post($post_data); // Insert the post
+            if (is_wp_error($post_id)) {
+                wp_send_json_error('Error saving post: ' . $post_id->get_error_message()); // Handle insert errors
             }
-            if (isset($gmpcp_arr['gmpcp_exclude_category'])) {
-                $args['tax_query'][] = array(
-                    'taxonomy' => 'product_cat',
-                    'field' => 'id',
-                    'terms' => $gmpcp_arr['gmpcp_exclude_category'],
-                    'operator' => 'NOT IN',
-                );
-            }
+        }
+        update_post_meta($post_id, 'gmwcpkey', $field_gmwcpkey);
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => 'Settings processed',
+        ));
+    }
+    // Save multiple settings
+    public function GMWCP_delete_custom_field($request) {
+         // Get nonce from request headers
+        $nonce = $request->get_header('X-WP-Nonce');
 
-            $products = $this->gmwcp_get_products_by_query($args);
-            $total_products = $this->total_products;
-            $total_pages = ceil($total_products / $data['per_page']);
+        // Verify nonce
+        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Invalid nonce',
+            ), 403); // Invalid nonce error
+        }
+        $settings = $request->get_param('settings');
+        $field_id = sanitize_text_field($settings['id']);
 
-            $response = rest_ensure_response($products);
-            $response->header('X-WP-TotalPages', $total_pages);
+        // Validate the required fields
+        if (empty($field_id)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Field id is required.',
+            ), 403);
         }
 
-        return $response;
+        // Delete the post (field) from the database
+        $deleted = wp_delete_post($field_id, true); // true for force delete
+
+        if ($deleted) {
+            return rest_ensure_response(array(
+                'success' => true,
+                'message' => 'Field deleted successfully.',
+            ));
+            wp_send_json_success('Field deleted successfully.'); // Send success response if deleted
+        } else {
+            return rest_ensure_response(array(
+                'success' => true,
+                'message' => 'Error deleting field. Please try again.',
+            ));
+        }
     }
 
-    public function gmwcp_get_product_by_id($product_id) {
-        return wc_get_product($product_id);
+    // Retrieve settings
+    public function GMWCP_get_settings($request) {
+        global $gmpcp_arr,$gmpcp_translation;
+         // Get nonce from request headers
+        $nonce = $request->get_header('X-WP-Nonce');
+
+        // Verify nonce
+        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Invalid nonce',
+            ), 403); // Invalid nonce error
+        }
+        $response = array();
+
+        // Retrieve each option and add it to the response array
+        foreach ($gmpcp_arr as $key_option=>$value_option) {
+            $response[$key_option] = $value_option;
+        }
+        // Fetch fields from the database
+        $fields = get_posts(array(
+            'post_type'   => 'gmwcp_custom_field', // Custom post type
+            'post_status' => 'publish', // Only published posts
+            'numberposts' => -1 // Retrieve all posts
+        ));
+
+        // Map the retrieved fields to a more usable format
+        $data = array_map(function($field) {
+            return array(
+                'id'       => $field->ID,
+                'title'    => $field->post_title,
+                'gmwcpkey'     => get_post_meta($field->ID, 'gmwcpkey', true),
+                
+            );
+        }, $fields);
+        $response['custom_fields'] = $data;
+        return rest_ensure_response($response);
     }
 
-    public function gmwcp_get_products_by_query($args) {
-        global $gmpcp_arr;
-        $gmwcp_exclude_out_of_stock = $gmpcp_arr['gmwcp_exclude_out_of_stock'];
-        $products = array();
-        $args['meta_query'] = array(
-            array(
-                'key'     => '_gmwcp_exclude_product_single',
-                'compare' => 'NOT EXISTS',
-            ),
-        );
-       
-        if ($gmwcp_exclude_out_of_stock == 'yes') {
-            $args['meta_query'][] = array(
-                'key'     => '_stock_status',
-                'value'   => 'instock',
-                'compare' => '='
-            );
-        }
-
-        $query = new WP_Query($args);
-        $this->total_products = $query->found_posts;
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $product_id = get_the_ID();
-                $product = wc_get_product($product_id);
-                $formatted_product = $this->gmwcp_format_product_data($product);
-                $products[] = $formatted_product;
-            }
-            wp_reset_postdata();
-        }
-
-        return $products;
+    // Permission callback: only allow admins
+    public function GMWCP_permission_callback($request) {
+        return current_user_can('manage_options'); // Allow only admins
     }
 
-    public function gmwcp_format_product_data($product) {
-        $gallery_image_ids = $product->get_gallery_image_ids();
-        $gallery_images = array();
-        foreach ($gallery_image_ids as $image_id) {
-            $gallery_images[] = array(
-                'src' => $this->convert_image_to_base64(wp_get_attachment_url($image_id)),
-                'alt' => get_post_meta($image_id, '_wp_attachment_image_alt', true),
-            );
-        }
-
-        $product_cat = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'names'));
-        $product_tag = wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'names'));
-        $product_description = $product->get_description();
-
-        $allowed_tags = array(
-            'strong' => array(),
-            'h1' => array(),
-            'h2' => array(),
-            'h3' => array(),
-            'h4' => array(),
-            'h6' => array(),
-            'p' => array(),
-            'div' => array(),
-        );
-        $thumbnail_url = get_the_post_thumbnail_url($product->get_id(), 'thumbnail');
-        if (!$thumbnail_url) {
-            $thumbnail_url = wc_placeholder_img_src('full');
-        }
-        $full_url = get_the_post_thumbnail_url($product->get_id(), 'full');
-        if (!$full_url) {
-            $full_url = wc_placeholder_img_src('full');
-        }
-        $images_full= 
-        $formatted_product = array(
-            'id' => $product->get_id(),
-            'name' => $product->get_name(),
-            'short_description' => $product->get_short_description(),
-            'price' => get_option('woocommerce_currency').' '.$product->get_price(),
-            'regular_price' => $product->get_regular_price(),
-            'sale_price' => $product->get_sale_price(),
-            'permalink' => get_permalink($product->get_id()),
-            'sku' => $product->get_sku(),
-            'stock_status' => $product->get_stock_status(),
-            'stock_quantity' => $product->get_stock_quantity(),
-            'categories' => wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'names')),
-            'tags' => wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'names')),
-            'images' => array(
-                'thumbnail' => $this->convert_image_to_base64($thumbnail_url),
-                'full' => $this->convert_image_to_base64($full_url),
-            ),
-            'gallery_images' => $gallery_images,
-            'producat_cat' => $product_cat,
-            'producat_tag' => $product_tag,
-            'weight' => $product->get_weight() . ' ' . get_option('woocommerce_weight_unit'),
-            'dimensions' => $product->get_length() . 'x' . $product->get_width() . 'x' . $product->get_height() . ' ' . get_option('woocommerce_dimension_unit'),
-            'description' => wp_kses($product_description, $allowed_tags)
-        );
-
-        $formatted_attributes = array();
-        $attributes = $product->get_attributes();
-        foreach ($attributes as $attr => $attr_deets) {
-            $attribute_label = wc_attribute_label($attr);
-            if (isset($attributes[$attr]) || isset($attributes['pa_' . $attr])) {
-                $attribute = isset($attributes[$attr]) ? $attributes[$attr] : $attributes['pa_' . $attr];
-                if ($attribute['is_taxonomy']) {
-                    $formatted_attributes[$attribute_label] = implode(', ', wc_get_product_terms($product->get_id(), $attribute['name'], array('fields' => 'names')));
-                } else {
-                    $formatted_attributes[$attribute_label] = $attribute['value'];
-                }
-            }
-        }
-        $formatted_product['attributes'] = $formatted_attributes;
-
-        return $formatted_product;
+    public function GMWCP_moreplugin($request) {
+        // Create an array of plugins
+        $plugins = [
+            [
+                "name" => "Product Enquiry for WooCommerce",
+                "url" => "https://wordpress.org/plugins/gm-woocommerce-quote-popup/",
+                "shortdescription" => "The Product Enquiry for WooCommerce plugin adds an enquiry button to every WooCommerce Product Page.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ],
+            [
+                "name" => "Short Description and Attributes Show Loop For Woocommerce",
+                "url" => "https://wordpress.org/plugins/short-description-and-attribute-show-loop-for-woocommerce/",
+                "shortdescription" => "To create a product loop in WooCommerce that displays a short description and selected product attributes, you can customize the WooCommerce template or use hooks.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ],
+            [
+                "name" => "Add to Quote For Woocommerce",
+                "url" => "https://wordpress.org/plugins/product-quote-cart-for-wc/",
+                "shortdescription" => "feature to WooCommerce with a brief, one-line product description, you can either use a plugin or manually customize the WooCommerce product loop.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ]
+            ,
+            [
+                "name" => "Product Shortcode – Widget – Block for Woocommerce ",
+                "url" => "https://wordpress.org/plugins/gm-woo-product-list-widget/",
+                "shortdescription" => "in WooCommerce for displaying products with descriptions, you can leverage the built-in WooCommerce shortcodes or customize them to suit your needs.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ]
+            ,
+            [
+                "name" => "Show Variations On Shop & Category WooCommerce",
+                "url" => "https://wordpress.org/plugins/woo-show-single-variations-shop-category/",
+                "shortdescription" => "you can show product variations directly on the shop and category pages.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ]
+            ,
+            [
+                "name" => "Variation Dropdown to Radio For Woocommerce",
+                "url" => "https://wordpress.org/plugins/gm-variations-radio-buttons-for-woocommerce/",
+                "shortdescription" => "enhancing user experience. Customers can easily see and select variations at a glance.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ]
+            ,
+            [
+                "name" => "PDF Catalog Woocommerce",
+                "url" => "https://wordpress.org/plugins/pdf-catalog-woocommerce/",
+                "shortdescription" => "This plugin allows you to generate customizable catalogs featuring product images, descriptions, and prices.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ]
+            ,
+            [
+                "name" => "Restrict Payment Methods For WooCommerce",
+                "url" => "https://wordpress.org/plugins/restrict-payment-methods-for-woocommerce/",
+                "shortdescription" => "allows you to restrict payment methods, ensuring customers can only use suitable options at checkout.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ],
+            [
+                "name" => "Display Product Variations Dropdown On Shop Page For Woocommerce",
+                "url" => "https://wordpress.org/plugins/display-product-variations-dropdown-on-shop-page-for-woocommerce/",
+                "shortdescription" => "Enhance your shop page by displaying product variation dropdowns directly on the product listings.",
+                "image" => "https://ps.w.org/gm-woocommerce-quote-popup/assets/icon-128x128.png"
+            ]
+        ];
+         return rest_ensure_response($plugins);
     }
 }
+
+// Initialize the API class
+new GMWCP_API();

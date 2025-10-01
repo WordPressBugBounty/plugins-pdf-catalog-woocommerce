@@ -1,0 +1,54 @@
+.gmwcpApp{
+  text-align:center;
+}
+/* Styling for the download button */
+.pdf-download-button {
+  display: inline-block;
+  padding: 10px 20px;
+  margin: 20px auto;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.pdf-download-button:hover {
+  background-color: #0056b3;
+}
+
+.pdf-download-button:focus {
+  outline: none;
+}
+
+.pdf-download-button:active {
+  background-color: #00408d;
+}
+
+/* Loader styles */
+.loader {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  border-top-color: #000;
+  animation: spin 1s ease-in-out infinite;
+  margin-top: 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Centered text for loading state */
+.loading-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+}

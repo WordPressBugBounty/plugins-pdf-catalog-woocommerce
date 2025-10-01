@@ -6,25 +6,72 @@
 class GMWCP_Admin {
 	
 	public function __construct () {
-		add_action( 'admin_init', array( $this, 'GMWCP_register_settings' ) );
 		add_action( 'admin_menu', array( $this, 'GMWCP_admin_menu' ) );
 		add_action('admin_enqueue_scripts', array( $this, 'GMWCP_admin_script' ));
 		add_filter( 'woocommerce_product_data_tabs', array( $this, 'GMWCP_custom_product_tabs' ) );
 		add_filter( 'woocommerce_product_data_panels', array( $this, 'GMWCP_custom_product_panels' ) );
 		add_action( 'woocommerce_process_product_meta', array( $this, 'GMWCP_custom_save' ) );
+		add_action( 'init', array( $this, 'GMWCP_init' ) );
 		if ( is_admin() ) {
 			return;
 		}
 		
 	}
+	public function GMWCP_init () {
+		$args = array(
+				'label'               => 'gmwcp_custom_field',
+				'show_ui'             => false,
+				'show_in_menu'        => false,
+				'show_in_nav_menus'   => false,
+				'show_in_admin_bar'   => false,
+				'menu_position'       => 5,
+				'can_export'          => true,
+				'has_archive'         => true,
+				'exclude_from_search' => true,
+				'publicly_queryable'  => true,
+				);
+	
+		// Registering your Custom Post Type
+		register_post_type( 'gmwcp_custom_field', $args );
+	}
 	public function GMWCP_admin_script ($hook) {
 		
 		if($hook=='toplevel_page_gmwcp-catalog'){
-		    wp_enqueue_style( 'gmwcp_select2_css' , GMWCP_PLUGINURL.'js/select2/select2.css');
-		    wp_enqueue_script('gmwcp_select2_js', GMWCP_PLUGINURL.'js/select2/select2.js');
-			wp_enqueue_script( 'wp-color-picker' ); 
-			wp_enqueue_style('gmwcp_admin_css', GMWCP_PLUGINURL.'css/admin-style.css');
-			wp_enqueue_script('gmwcp_admin_js', GMWCP_PLUGINURL.'js/admin-script.js');
+			wp_enqueue_style('wp-components');
+			 wp_register_script(
+	            'gmwcp-react-admin',
+	            GMWCP_PLUGINURL.'/build/admin/admin.js', // Adjust the path if necessary
+		        ['wp-element','wp-dom-ready','wp-components'], // Ensure this depends on WordPress's React
+		        '1.0',
+		        true
+
+		        );
+
+			global $gmpcp_translation;
+	        wp_localize_script('gmwcp-react-admin', 'gmwcp_wp_ajax', [
+	            'nonce' => wp_create_nonce('wp_rest'), 
+	            'moreplugin' => rest_url('gmwcp/v1/moreplugin'),
+	            'getsettings' => add_query_arg('rand', rand(), rest_url('gmwcp/v1/get-settings')),
+	            'savedata' => rest_url('gmwcp/v1/save-settings'),
+	            'savecustomfield' => rest_url('gmwcp/v1/save-customfield'),
+	            'deletecustomfield' => rest_url('gmwcp/v1/delete-customfield'),
+	            'gmwcpcategory' => get_terms( 'product_cat', array(
+                        'hide_empty' => false,
+                    ) ),
+	            'gmwcproles' => wp_roles()->roles,
+	            'gmpcp_translation' => $gmpcp_translation,
+	            'site_url' => get_site_url()
+	        ]);
+
+			wp_enqueue_script('gmwcp-react-admin');
+
+		    wp_enqueue_style(
+		            'gmwcp-react-admin-style',
+		            GMWCP_PLUGINURL.'/build/admin/admin.css',
+		            array(),
+		            1,
+		        );
+
 		}
 		
 	}
@@ -43,124 +90,20 @@ class GMWCP_Admin {
 		        <p>
 					Thank you for using our plugin! If you are satisfied, please reward it a full five-star <span style="color:#ffb900">★★★★★</span> rating.                        <br>
 		            <a href="https://wordpress.org/support/plugin/pdf-catalog-woocommerce/reviews/?filter=5" target="_blank">Reviews</a>
-		            | <a href="https://www.codesmade.com/contact-us/" target="_blank">Support</a>
+		            | <a href="https://www.codesmade.com/contact-us/" target="_blank">Support 24x7</a> <span style="font-weight: bold;">We will respond to your support request within 24 hours.</span>
 		        </p>
 		    </div>
 		</div>
-		<hr class="wp-header-end">
+		<?php 
+		echo '<div id="GMWCP-admin-root"></div>';
+		?>
 		
-			<div class="postbox">
-					
-					<div class="inside">
-						<?php
-						$navarr = array(
-							'page=gmwcp-catalog'=>'Category & Shop Page Setting',
-							'page=gmwcp-catalog&view=single'=>'Single Product Page Setting',
-							'page=gmwcp-catalog&view=layout'=>'Layout',
-							'page=gmwcp-catalog&view=exclude'=>'Exclude',
-							'page=gmwcp-catalog&view=trasnlation'=>'Translation',
-							
-						);
-						?>
-						<h2 class="nav-tab-wrapper">
-							<?php
-							foreach ($navarr as $keya => $valuea) {
-								$pagexl = explode("=",$keya);
-								if(!isset($pagexl[2])){
-									$pagexl[2] = '';
-								}
-								if(!isset($_REQUEST['view'])){
-									$_REQUEST['view'] = '';
-								}
-								?>
-								<a href="<?php echo admin_url( 'admin.php?'.$keya);?>" class="nav-tab <?php if($pagexl[2]==$_REQUEST['view']){echo 'nav-tab-active';} ?>"><?php echo $valuea;?></a>
-								<?php
-							}
-							?>
-						</h2>
-						
-					   <?php
-
-						if($_REQUEST['view']==''){
-							include(GMWCP_PLUGINDIR.'includes/GMWCP_Shop_Admin.php');
-						}
-						if($_REQUEST['view']=='single'){
-							include(GMWCP_PLUGINDIR.'includes/GMWCP_Single_Admin.php');
-						}
-						if($_REQUEST['view']=='layout'){
-							include(GMWCP_PLUGINDIR.'includes/GMWCP_layout.php');
-						}
-						if($_REQUEST['view']=='exclude'){
-							include(GMWCP_PLUGINDIR.'includes/GMWCP_Exclude.php');
-						}
-						if($_REQUEST['view']=='trasnlation'){
-							include(GMWCP_PLUGINDIR.'includes/GMWCP_trasnlation.php');
-						}
-						?>
-					</div>
-			</div>
 			
 	</div>
 
 	<?php
 	}
 
-	public function GMWCP_register_settings() {
-		register_setting( 'gmwcp_shop_options_group', 'gmwcp_shop_enable_product', array( $this, 'gmwqp_callbackcheckbox' )  );
-
-		register_setting( 'gmwcp_shop_options_group', 'gmwcp_shop_display_location', array( $this, 'gmwqp_callback' )  );
-
-
-
-		register_setting( 'gmwcp_options_group', 'gmwcp_enable_single_product' , array( $this, 'gmwqp_callbackcheckbox' ) );
-		register_setting( 'gmwcp_options_group', 'gmwcp_single_display_location' , array( $this, 'gmwqp_callback' ) );
-
-		register_setting( 'gmpcp_exclude_options_group', 'gmwcp_exclude_out_of_stock', array( $this, 'gmwqp_callback' ) );
-		register_setting( 'gmpcp_exclude_options_group', 'gmpcp_exclude_category', array( $this, 'gmwqp_callback' ) );
-		register_setting( 'gmpcp_exclude_options_group', 'gmpcp_exclude_role', array( $this, 'gmwqp_callback' ) );
-		
-
-		if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'wp_gmpcp_layout'){
-			if(!isset( $_POST['gmpcp_nonce_field_layout'] ) || !wp_verify_nonce( $_POST['gmpcp_nonce_field_layout'], 'gmpcp_nonce_action_layout' ) ){
-                print 'Sorry, your nonce did not verify.';
-                exit;
-            }else{
-            	update_option( 'gmwcp_show_hide', $_REQUEST['gmwcp_show_hide'] );
-            	foreach ($_REQUEST['gmpcplayotarr'] as $keya => $valuea) {
-            		if($keya=='gmpcp_footer_text'){
-            			//$textToStore = htmlspecialchars($valuea, ENT_QUOTES | ENT_HTML5);
-            			update_option( $keya, wp_kses_post($valuea) );
-            		}else{
-            			update_option( $keya, sanitize_text_field($valuea) );
-            		}
-            		
-            	}
-				wp_redirect( admin_url( 'admin.php?page=gmwcp-catalog&view=layout&msg=layout') );
-			}
-			exit;
-		}
-		if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'wp_gmpcp_trasnlation'){
-			if(!isset( $_POST['gmpcp_nonce_field_trasnlation'] ) || !wp_verify_nonce( $_POST['gmpcp_nonce_field_trasnlation'], 'gmpcp_nonce_action_trasnlation' ) ){
-                print 'Sorry, your nonce did not verify.';
-                exit;
-            }else{
-            	foreach ($_REQUEST['gmpcp_trasnlation_arr'] as $keya => $valuea) {
-            			update_option( $keya, sanitize_text_field($valuea) );
-            	}
-				wp_redirect( admin_url( 'admin.php?page=gmwcp-catalog&view=trasnlation&msg=trasnlation') );
-			}
-			exit;
-		}
-	}
-	public function gmwqp_callbackcheckbox($option) {
-		if($option==''){
-			return 'no';
-		}
-		return $option;
-	}
-	public function gmwqp_accesstoken_callback($option) {
-		return $option;
-	}
 	
 	public function GMWCP_custom_product_tabs( $tabs) {
 		$tabs['gmwcp_tab'] = array(

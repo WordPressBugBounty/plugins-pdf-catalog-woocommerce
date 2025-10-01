@@ -1,101 +1,54 @@
-body{
-	font-family: 'DejaVu Sans';
-	margin:0;
-	padding:50px 20px;
-} 
-html{
-	margin:0;
-	padding:0;
+.gmwcpApp{
+  text-align:center;
 }
-header, footer{
-    position: fixed;
-    left: 0px;
-    right: 0px;
-    z-index:9556222222;
-    padding-right:20px;
-    padding-left:20px; 
-}
-header{
-    height: 40px;
-    top:0;
-
-}
-footer{
-    height: 40px;
-    bottom:0;
-    text-align: right;
-}
-header p, header span{
-	margin:0;
-	line-height: 25px;
-}
-footer p{
-	margin:0;
-	line-height: 30px;
-}
-main{
-	margin-top: 0px;
-	margin-bottom: 0px; 
-}
-.leftimage{
-	width:40%;
-	float: left; 
-}
-.leftimage img{
-	max-width: 100%;
-
-}
-.rightimage{
-	width: 60%;
-	float: right;
-}
-.innerrightimage h2{
-	margin-top: 0;
+/* Styling for the download button */
+.pdf-download-button {
+  display: inline-block;
+  padding: 10px 20px;
+  margin: 20px auto;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
 }
 
-.fullwdithimag h3{
-	margin-top: 0;
+.pdf-download-button:hover {
+  background-color: #0056b3;
 }
-.innerrightimage{
-	margin-left: 20px;
-}
-.upperdivs{
-	display: inline-block;
-	width: 100%;
 
+.pdf-download-button:focus {
+  outline: none;
+}
 
+.pdf-download-button:active {
+  background-color: #00408d;
 }
-.fullwdithimag{
-	display: block;
-	width: 100%;
+
+/* Loader styles */
+.loader {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  border-top-color: #000;
+  animation: spin 1s ease-in-out infinite;
+  margin-top: 20px;
 }
-.spacea{
-	display: block;
-	height: 5px;
-	clear: both;
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
-.spacear{
-	display: block;
-	height: 25px;
-	clear: both;
-}
-.main{
-	border-bottom: 1px solid #000;
-	display: block;
-	width: 100%;
-}
-.metacustl>div{
-	/*padding-top: 5px;*/
-}
-.metacustl th{
-	text-align: left;
-}
-.main_gallery_image{
-	margin-top: 20px;
-}
-.smallimage_img{
-	width: 100px;
-	display: inline-block;
-	padding-right: 3px;
-	padding-top: 5px;
+
+/* Centered text for loading state */
+.loading-text {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
 }
