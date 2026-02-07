@@ -244,6 +244,21 @@ var CategoryTab = function CategoryTab(_ref) {
       return updateField('gmwcp_shop_text_align', value);
     }
   }))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, /*#__PURE__*/React.createElement("label", null, "Order By")), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.RadioControl, {
+    selected: data.gmwcp_shop_orderby,
+    options: [{
+      label: 'Date',
+      value: 'date'
+    }, {
+      label: 'Title',
+      value: 'title'
+    }, {
+      label: 'Price',
+      value: 'price'
+    }],
+    onChange: function onChange(value) {
+      return updateField('gmwcp_shop_orderby', value);
+    }
+  }))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, /*#__PURE__*/React.createElement("label", null, "Order Direction")), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.RadioControl, {
     selected: data.gmwcp_shop_order,
     options: [{
       label: 'ASC',
@@ -850,6 +865,18 @@ var LayoutTab = function LayoutTab(_ref) {
       return updateField('gmpcp_product_content_font_size', value);
     },
     value: data.gmpcp_product_content_font_size
+  }))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, /*#__PURE__*/React.createElement("label", null, "Direction")), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.RadioControl, {
+    selected: data.gmwcp_direction,
+    options: [{
+      label: 'LTR',
+      value: 'ltr'
+    }, {
+      label: 'RTL',
+      value: 'rtl'
+    }],
+    onChange: function onChange(value) {
+      return updateField('gmwcp_direction', value);
+    }
   })))), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.Button, {
     isPrimary: true,
     onClick: saveSettings,

@@ -129,6 +129,8 @@ class GMWCP_API_Frontend {
     }
 
     public function gmwcp_get_woocommerce_products($data) {
+        nocache_headers();
+        $data['per_page']=100;
         global $gmpcp_arr;
         $gmwcp_exclude_out_of_stock = $gmpcp_arr['gmwcp_exclude_out_of_stock'];
         $products = array();
@@ -161,14 +163,26 @@ class GMWCP_API_Frontend {
             $response = rest_ensure_response($products);
             $response->header('X-WP-TotalPages', 1);
         } else {
+            $order_by = $gmpcp_arr['gmwcp_shop_orderby'];
+            $order    = $gmpcp_arr['gmwcp_shop_order'];
             $args = array(
                 'post_type' => 'product',
                 'posts_per_page' => $data['per_page'],
                 'paged' => $data['page'],
-                'orderby'     => 'title',
-                'order'     => $gmpcp_arr['gmwcp_shop_order'],
+                'order'          => $order,
             );
+            if ( $order_by === 'price' ) {
+                $args['meta_key'] = '_price';
+                $args['orderby']  = 'meta_value_num'; // Important: numeric sorting
+            } elseif ( $order_by === 'title' ) {
+                $args['orderby'] = 'title';
+            } else {
+                $args['orderby'] = 'date'; // fallback or any default you prefer
+            }
 
+            if (!empty($data['s'])) {
+                $args['s'] =$data['s'];
+            }
             if (!empty($data['taxonomy'])) {
                 $args['tax_query'][] = array(
                     'taxonomy' => $data['taxonomy'],
@@ -212,6 +226,12 @@ class GMWCP_API_Frontend {
         );
        
         if ($gmwcp_exclude_out_of_stock == 'yes') {
+            $args['tax_query'][] = array(
+                'taxonomy' => 'product_visibility',
+                'field'    => 'name',
+                'terms'    => array('outofstock'),
+                'operator' => 'NOT IN',
+            );
             $args['meta_query'][] = array(
                 'key'     => '_stock_status',
                 'value'   => 'instock',
@@ -242,10 +262,14 @@ class GMWCP_API_Frontend {
         $gallery_image_ids = $product->get_gallery_image_ids();
         $gallery_images = array();
         foreach ($gallery_image_ids as $image_id) {
-            $gallery_images[] = array(
-                'src' => $this->convert_image_to_base64(wp_get_attachment_url($image_id)),
-                'alt' => get_post_meta($image_id, '_wp_attachment_image_alt', true),
-            );
+            $thumbnail = wp_get_attachment_image_src($image_id, [300, 300]); // Get thumbnail URL
+
+            if($thumbnail[0]!=''){
+                $gallery_images[] = array(
+                    'src' => $thumbnail[0], // Thumbnail URL
+                    'alt' => get_post_meta($image_id, '_wp_attachment_image_alt', true),
+                );
+            }
         }
 
         $product_cat = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'names'));
@@ -262,11 +286,11 @@ class GMWCP_API_Frontend {
             'p' => array(),
             'div' => array(),
         );
-        $thumbnail_url = get_the_post_thumbnail_url($product->get_id(), 'thumbnail');
+        $thumbnail_url = get_the_post_thumbnail_url($product->get_id(), [300, 300]);
         if (!$thumbnail_url) {
             $thumbnail_url = wc_placeholder_img_src('full');
         }
-        $full_url = get_the_post_thumbnail_url($product->get_id(), 'full');
+        $full_url = get_the_post_thumbnail_url($product->get_id(), [300, 300]);
         if (!$full_url) {
             $full_url = wc_placeholder_img_src('full');
         }
@@ -275,9 +299,24 @@ class GMWCP_API_Frontend {
             'id' => $product->get_id(),
             'name' => $product->get_name(),
             'short_description' => $product->get_short_description(),
-            'price' => get_option('woocommerce_currency').' '.$product->get_price(),
-            'regular_price' => $product->get_regular_price(),
-            'sale_price' => $product->get_sale_price(),
+            'price' => get_option('woocommerce_currency') . ' ' . number_format(
+                                                                                (float) $product->get_price(),
+                                                                                wc_get_price_decimals(),
+                                                                                wc_get_price_decimal_separator(),
+                                                                                wc_get_price_thousand_separator()
+                                                                            ),
+            'regular_price' => get_option('woocommerce_currency') . ' ' . number_format(
+                                                                                (float) $product->get_regular_price(),
+                                                                                wc_get_price_decimals(),
+                                                                                wc_get_price_decimal_separator(),
+                                                                                wc_get_price_thousand_separator()
+                                                                            ),
+            'sale_price' => get_option('woocommerce_currency') . ' ' . number_format(
+                                                                                (float) $product->get_sale_price(),
+                                                                                wc_get_price_decimals(),
+                                                                                wc_get_price_decimal_separator(),
+                                                                                wc_get_price_thousand_separator()
+                                                                            ),
             'permalink' => get_permalink($product->get_id()),
             'sku' => $product->get_sku(),
             'stock_status' => $product->get_stock_status(),

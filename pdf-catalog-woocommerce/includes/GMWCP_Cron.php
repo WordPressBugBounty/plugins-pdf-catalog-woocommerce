@@ -39,6 +39,9 @@ class GMWCP_Cron {
 			'gmpcp_hf_text_color' => '#000000',
 			'gmpcp_product_title_font_size' => '16',
 			'gmpcp_product_content_font_size' => '12',
+			'gmwcp_direction' => 'ltr',
+
+			
 
 			'gmwcp_shop_enable_product' => 'yes',
 			'gmwcp_shop_view' => 'list',
@@ -48,7 +51,8 @@ class GMWCP_Cron {
 			'gmwcp_shop_show_hide' => array('title','images','short_desc','long_desc','read_more','sku','price','categories','tags','stock_status'),
 			'gmwcp_shop_display_location' => 'before',
 			'gmwcp_shop_text_align' => 'left',
-			'gmwcp_shop_order' => 'ASC',
+			'gmwcp_shop_order' => 'DESC',
+			'gmwcp_shop_orderby' => 'date',
 			'gmwcp_shop_show_category_wise' => 'no',
 			'gmwcp_shop_download_file_name' => 'Download PDF',
 			

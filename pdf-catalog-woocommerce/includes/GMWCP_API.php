@@ -33,7 +33,6 @@ class GMWCP_API {
             'callback' => array($this, 'GMWCP_get_settings'),
             'permission_callback' => array($this, 'GMWCP_permission_callback'),
         ));
-
         register_rest_route('gmwcp/v1', '/moreplugin', array(
             'methods' => 'GET',
             'callback' => array($this, 'GMWCP_moreplugin'),
@@ -233,7 +232,7 @@ class GMWCP_API {
     public function GMWCP_permission_callback($request) {
         return current_user_can('manage_options'); // Allow only admins
     }
-
+    
     public function GMWCP_moreplugin($request) {
         // Create an array of plugins
         $plugins = [

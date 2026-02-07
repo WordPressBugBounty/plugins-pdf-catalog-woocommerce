@@ -1,5 +1,5 @@
 === PDF Catalog Woocommerce ===
-Tested up to: 6.8
+Tested up to: 6.9
 Tags: Woocommerce Catalog PDF, Woocommerce PDF, Woocommerce  Catalog
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -30,6 +30,7 @@ Generate a dynamic PDF catalog for your WooCommerce store. Allow customers to do
    <li><strong>Image Width Options:</strong> Adjust the width of product images.</li>
    <li><strong>Custom PDF File Names:</strong> Define unique names for your PDF files.</li>
    <li><strong>Hide/Show Options:</strong> Toggle visibility for title, images, short description, long description, read more, SKU, price, categories, tags, and stock status.</li>
+   <li><strong>Direction:</strong> Ltr and Rtl</li>
    <li>
       <strong>Shortcodes Product Page:</strong> 
       <code>[gmwcp_single_product]</code> or <code>[gmwcp_single_product id='{product_id}']</code>

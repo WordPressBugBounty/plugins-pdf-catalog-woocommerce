@@ -21,12 +21,6 @@ class GMWCP_PDF {
 	    	if(isset($_REQUEST['product_id']) && $_REQUEST['product_id']!=''){
 	    		$updated_url = add_query_arg( 'product_id', $_REQUEST['product_id'], $updated_url );
 	    	}
-	    	if(isset($_REQUEST['taxonomy']) && $_REQUEST['taxonomy']!=''){
-	    		$updated_url = add_query_arg( 'taxonomy', $_REQUEST['taxonomy'], $updated_url );
-	    	}
-	    	if(isset($_REQUEST['taxonomy_value']) && $_REQUEST['taxonomy_value']!=''){
-	    		$updated_url = add_query_arg( 'taxonomy_value', $_REQUEST['taxonomy_value'], $updated_url );
-	    	}
 			$arr['rest_api_product']=$updated_url;
 			$arr['pluginurl']=GMWCP_PLUGINURL;
 	    	$json_data = json_encode($arr);
@@ -52,7 +46,7 @@ class GMWCP_PDF {
 			       
 			     <!-- Load React and ReactDOM from CDN -->
 				<script src="<?php echo GMWCP_PLUGINURL;?>/js/react.production.min.js"></script>
-			    <script src="<?php echo GMWCP_PLUGINURL;?>/build/frontend/frontend.js" ></script>
+			    <script src="<?php echo GMWCP_PLUGINURL;?>/build/frontend/frontend.js?ver=<?php echo rand();?>" ></script>
 			   </body>
 			</html>
 			<?php
@@ -70,15 +64,51 @@ class GMWCP_PDF {
 	    	$arr['site_url']=get_site_url();
 	    	$arr['rest_api_url']=get_rest_url();
 	    	$updated_url=get_rest_url(null,'gmwcp-pdf/v1/products');
+	    	$taxonomy     = $_REQUEST['taxonomy'] ?? '';
+			$taxonomy_value     = $_REQUEST['taxonomy_value'] ?? '';
+	    	if(isset($_REQUEST['s']) && $_REQUEST['s']!=''){
+	    		$updated_url = add_query_arg( 's', $_REQUEST['s'], $updated_url );
+	    	}
 	    	if(isset($_REQUEST['product_id']) && $_REQUEST['product_id']!=''){
 	    		$updated_url = add_query_arg( 'product_id', $_REQUEST['product_id'], $updated_url );
 	    	}
-	    	if(isset($_REQUEST['taxonomy']) && $_REQUEST['taxonomy']!=''){
+	    	if(isset($taxonomy) && $taxonomy!=''){
 	    		$updated_url = add_query_arg( 'taxonomy', $_REQUEST['taxonomy'], $updated_url );
 	    	}
-	    	if(isset($_REQUEST['taxonomy_value']) && $_REQUEST['taxonomy_value']!=''){
-	    		$updated_url = add_query_arg( 'taxonomy_value', $_REQUEST['taxonomy_value'], $updated_url );
+	    	if(isset($taxonomy_value) && $taxonomy_value!=''){
+	    		$updated_url = add_query_arg( 'taxonomy_value', $taxonomy_value, $updated_url );
+	    		$arr['is_taxpage']='yes';
+	    	}else{
+	    		$arr['is_taxpage']='no';
 	    	}
+
+
+			if ( $taxonomy && $taxonomy_value ) {
+
+			    // 1. Get term by slug
+			    $term = get_term_by('slug', $taxonomy_value, $taxonomy);
+
+			    if ( $term && ! is_wp_error($term) ) {
+
+			        $arr['category_exists'] = 'yes';
+
+			        // 2. Check if it has child terms
+			        $children = get_terms([
+			            'taxonomy'   => $taxonomy,
+			            'parent'     => $term->term_id,
+			            'hide_empty' => false,
+			        ]);
+
+			        $arr['has_children'] = ! empty($children) ? 'yes' : 'no';
+			        $arr['term_name'] = $term->name;
+
+			    } else {
+			        $arr['category_exists'] = 'no';
+			        $arr['has_children']    = 'no';
+			        $arr['term_name'] = 'Shop';
+			    }
+			}
+
 			$arr['rest_api_product']=$updated_url;
 			$arr['pluginurl']=GMWCP_PLUGINURL;
 	    	$json_data = json_encode($arr);
