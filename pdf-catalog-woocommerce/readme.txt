@@ -1,77 +1,131 @@
-=== PDF Catalog Woocommerce ===
-Tested up to: 6.9
-Tags: Woocommerce Catalog PDF, Woocommerce PDF, Woocommerce  Catalog
+=== PDF Catalog for WooCommerce ===
+Tags: woocommerce pdf catalog, product catalog pdf, woocommerce export pdf, woocommerce product pdf, pdf catalog generator
+Requires at least: 5.8
+Tested up to: 6.8
+Requires PHP: 7.2
+Stable tag: 1.0.0
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-3.0.html
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Generate a dynamic PDF catalog for your WooCommerce store. Allow customers to download product catalogs by category, single product, or the entire store with images, prices, SKUs, and descriptions. Enhance your store with WooCommerce PDF Catalog.
+Generate dynamic PDF catalogs for WooCommerce products. Allow customers to download shop, category, or single product catalogs including images, prices, SKUs, and descriptions.
 
 == Description ==
 
-**Woocommerce Catalog PDF** allows customers to download a catalog for a single product page, a specific category, or all products. Download your product catalog easily with [Woocommerce](https://en.wikipedia.org/wiki/WooCommerce)
+**PDF Catalog for WooCommerce** allows you to generate and download WooCommerce product catalogs in PDF format with a single click.
 
-[Demo](https://codesmade.com/demo/product/album/) | [Support](https://www.codesmade.com/contact-us/) | [Pro Version](https://www.codesmade.com/store/pdf-catalog-woocommerce-pro/)
+Customers can download:
+- Entire shop product catalogs
+- Category-wise product catalogs
+- Single product PDF catalogs
 
-**WooCommerce PDF Catalog** allows you to dynamically generate and download all products as a PDF.
+This plugin is ideal for wholesalers, B2B stores, offline selling, product presentations, and printable catalogs.
 
-#### FEATURES
+🔗 Demo: https://codesmade.com/demo/product/album/  
+🔗 Support: https://www.codesmade.com/contact-us/  
+🔗 Pro Version: https://www.codesmade.com/store/pdf-catalog-woocommerce-pro/
 
-<ul>
-   <li><strong>One-Click Installation:</strong> Easy and quick setup with a single click.</li>
-   <li><strong>Shop and Category-wise Catalog PDFs:</strong> Generate PDFs for shops and categories separately.</li>
-   <li><strong>Grid View / List View Options:</strong> Toggle between grid and list views for category and shop pages.</li>
-   <li><strong>Design Options:</strong> Customize alignment, color, and font size.</li>
-   <li><strong>Display Products by Category:</strong> Show category names first, followed by products within each category.</li>
-   <li><strong>Exclusion Options:</strong> Exclude out-of-stock items, specific products, product categories, and user roles.</li>
-   <li><strong>Single Product Page Catalog:</strong> Create catalogs for individual product pages.</li>
-   <li><strong>Custom Background and Text Colors:</strong> Personalize the appearance of catalogs.</li>
-   <li><strong>Multiple Button Locations:</strong> Display buttons at various locations as needed.</li>
-   <li><strong>Custom Product Meta Keys:</strong> Add additional product metadata if required.</li>
-   <li><strong>Image Width Options:</strong> Adjust the width of product images.</li>
-   <li><strong>Custom PDF File Names:</strong> Define unique names for your PDF files.</li>
-   <li><strong>Hide/Show Options:</strong> Toggle visibility for title, images, short description, long description, read more, SKU, price, categories, tags, and stock status.</li>
-   <li><strong>Direction:</strong> Ltr and Rtl</li>
-   <li>
-      <strong>Shortcodes Product Page:</strong> 
-      <code>[gmwcp_single_product]</code> or <code>[gmwcp_single_product id='{product_id}']</code>
-   </li>
-   <li>
-      <strong>Shortcodes Category Page:</strong> 
-      <code>[gmwcp_shop_product]</code> or <code>[gmwcp_shop_product category_id='{category_id}']</code>
-   </li>
-</ul>
+---
 
-#### FEATURES OF THE PRO VERSION
+== Key Features ==
 
-<ul>
-   <li><strong>Header Customization:</strong> Personalize the header section of your catalogs.</li>
-   <li><strong>Footer Customization:</strong> Customize the footer area as desired.</li>
-   <li><strong>Hide/Show Options:</strong> Additional toggles for gallery and attributes visibility.</li>
-   <li><strong>Translate Keywords:</strong> Enable keyword translation for better localization.</li>
-   <li><strong>Page Break After Product:</strong> Add page breaks after each product for better formatting.</li>
-</ul>
+✔ One-Click Installation – Quick and simple setup  
+✔ Shop & Category PDF Export – Generate PDFs for shop or specific categories  
+✔ Single Product PDF – Export individual product pages  
+✔ Grid & List Layout Options – Choose your preferred layout style  
+✔ Design Customization – Adjust font size, alignment, and colors  
+✔ Category Group Display – Show products grouped by categories  
+✔ Exclude Options – Hide out-of-stock items, specific products, categories, or user roles  
+✔ Image Width Control – Adjust product image size  
+✔ Custom PDF File Name – Define your own PDF naming structure  
+✔ Hide/Show Controls – Toggle title, images, description, SKU, price, categories, tags, and stock  
+✔ RTL & LTR Support – Fully compatible with multilingual stores  
+✔ Custom Product Meta Fields – Include additional custom fields in the PDF  
+✔ Multiple Button Locations – Display download button where needed  
 
-**WooCommerce PDF Catalog** can be used by offline customers to view all product information, including price, product description, SKU, and images. The PDF features an attractive layout to create a visually appealing catalog.
+---
 
-WooCommerce products can be exported as a PDF from the shop, category, and single product pages. **Add a PDF download option** to WooCommerce pages for an easy way to get product information. This allows customers to quickly download product details in the **WooCommerce Catalog PDF** format.
+== Shortcodes ==
 
+Single Product PDF:
+[gmwcp_single_product]
+[gmwcp_single_product id="{product_id}"]
 
-<h4>Our More Plugins</h4>
+Shop / Category PDF:
+[gmwcp_shop_product]
+[gmwcp_shop_product category_id="{category_id}"]
 
-[Short Description and Attributes Show Loop For Woocommerce](https://wordpress.org/plugins/short-description-and-attribute-show-loop-for-woocommerce/) To create a product loop in WooCommerce that displays a short description and selected product attributes, you can customize the WooCommerce template or use hooks.
+You can also generate via URL:
+?action=catelog_single&product_id={ID}
 
-[Add to Quote For Woocommerce](https://wordpress.org/plugins/product-quote-cart-for-wc/) feature to WooCommerce with a brief, one-line product description, you can either use a plugin or manually customize the WooCommerce product loop.
+---
 
-[Product List and Grid View Block for Woocommerce](https://wordpress.org/plugins/gm-woo-product-list-widget/) in WooCommerce for displaying products with descriptions, you can leverage the built-in WooCommerce shortcodes or customize them to suit your needs.
+== PRO Version Features ==
 
-[Show Variations On Shop & Category WooCommerce](https://wordpress.org/plugins/woo-show-single-variations-shop-category/) you can show product variations directly on the shop and category pages.
+Upgrade to unlock advanced catalog customization:
 
-[Variation Dropdown to Radio For Woocommerce](https://wordpress.org/plugins/gm-variations-radio-buttons-for-woocommerce/) enhancing user experience. Customers can easily see and select variations at a glance.
+★ Custom Header Design  
+★ Custom Footer Design  
+★ Gallery & Attribute Toggle Controls  
+★ Translation Support for Keywords  
+★ Page Break After Each Product  
+★ Advanced Layout Customization  
 
-[Product Enquiry for WooCommerce](https://wordpress.org/plugins/gm-woocommerce-quote-popup/) This plugin enables customers to submit inquiries directly from product pages.
+---
 
-[PDF Catalog Woocommerce](https://wordpress.org/plugins/pdf-catalog-woocommerce/) This plugin allows you to generate customizable catalogs featuring product images, descriptions, and prices. 
+== Why Use PDF Catalog for WooCommerce? ==
 
-[Restrict Payment Methods For WooCommerce](https://wordpress.org/plugins/restrict-payment-methods-for-woocommerce/) allows you to restrict payment methods, ensuring customers can only use suitable options at checkout.
+• Share product catalogs offline  
+• Send PDF catalogs to customers via email  
+• Create printable WooCommerce catalogs  
+• Ideal for wholesalers and B2B stores  
+• Professional product presentation  
 
-[Display Product Variations Dropdown On Shop Page For Woocommerce](https://wordpress.org/plugins/display-product-variations-dropdown-on-shop-page-for-woocommerce/) Enhance your shop page by displaying product variation dropdowns directly on the product listings.
+Your WooCommerce store becomes more powerful with downloadable PDF catalogs that include images, pricing, SKU, attributes, and descriptions.
+
+---
+
+== Frequently Asked Questions ==
+
+= How do I create a PDF for a single product? =
+Use shortcode [gmwcp_single_product] or append:
+?action=catelog_single&product_id={ID}
+
+= Can I exclude out-of-stock products? =
+Yes. Enable “Exclude Out of Stock” from plugin settings.
+
+= Can I add custom product fields to the PDF? =
+Yes. Register custom fields in plugin settings and they will be included automatically.
+
+= Can I customize header, footer, or colors? =
+Yes. You can customize background colors, item colors, header text, and footer text from settings.
+
+= Does it support variable products? =
+Yes. Product attributes and variation data are included in the PDF output.
+
+---
+
+== Installation ==
+
+1. Upload the plugin files to `/wp-content/plugins/pdf-catalog-woocommerce/`
+2. Activate the plugin from the WordPress dashboard
+3. Go to WooCommerce → PDF Catalog Settings
+4. Configure your preferences
+5. Add shortcode or enable button display
+
+---
+
+== Screenshots ==
+
+1. Shop Page PDF Button  
+2. Category Page PDF  
+3. Single Product PDF  
+4. Admin Settings Panel  
+5. Generated PDF Preview  
+
+---
+
+== Changelog ==
+
+= 1.0.0 =
+Initial release
+

@@ -286,15 +286,14 @@ class GMWCP_API_Frontend {
             'p' => array(),
             'div' => array(),
         );
-        $thumbnail_url = get_the_post_thumbnail_url($product->get_id(), [300, 300]);
+        $thumbnail_url = get_the_post_thumbnail_url($product->get_id(), 'woocommerce_thumbnail');
         if (!$thumbnail_url) {
             $thumbnail_url = wc_placeholder_img_src('full');
         }
-        $full_url = get_the_post_thumbnail_url($product->get_id(), [300, 300]);
+        $full_url = get_the_post_thumbnail_url($product->get_id(), 'woocommerce_thumbnail');
         if (!$full_url) {
             $full_url = wc_placeholder_img_src('full');
         }
-        $images_full= 
         $formatted_product = array(
             'id' => $product->get_id(),
             'name' => $product->get_name(),
