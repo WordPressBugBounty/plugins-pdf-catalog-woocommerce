@@ -49,4 +49,15 @@ new GMWCP_Frontend();
 new GMWCP_PDF();
 new GMWCP_API();
 new GMWCP_API_Frontend();
-?>
+
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'GMWCP_action_links' );
+if( ! function_exists( 'GMWCP_action_links' ) ) {
+	function GMWCP_action_links( $links ) {
+
+		$settings_link = '<a href="' . admin_url( 'admin.php?page=gmwcp-catalog' ) . '">Settings</a>';
+
+		array_unshift( $links, $settings_link );
+
+		return $links;
+	}
+}
